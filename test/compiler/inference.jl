@@ -2207,3 +2207,12 @@ _call_rttf_test() = Core.Compiler.return_type(_rttf_test, Tuple{Any})
 
 f_with_Type_arg(::Type{T}) where {T} = T
 @test Base.return_types(f_with_Type_arg, (Any,)) == Any[Type]
+
+# Test PartialStruct for closures
+@noinline use30783(x) = nothing
+function foo30783(b)
+    a = 1
+    f = ()->(use30783(b); Val(a))
+    f()
+end
+@test @inferred(foo30783(2)) == Val(1)
