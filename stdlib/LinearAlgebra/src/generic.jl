@@ -466,7 +466,21 @@ julia> norm(-2, Inf)
 2
 ```
 """
-@inline norm(x::Number, p::Real=2) = p == 0 ? (x==0 ? zero(abs(x)) : oneunit(abs(x))) : abs(x)
+@inline function norm(x::Number, p::Real=2)
+    afx = abs(float(x))
+    if p == 0
+        if x == 0
+            return zero(afx)
+        elseif !isnan(x)
+            return oneunit(afx)
+        else
+            return afx
+        end
+    else
+        return afx
+    end
+end
+
 norm(::Missing, p::Real=2) = missing
 
 # special cases of opnorm
