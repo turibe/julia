@@ -129,7 +129,7 @@ function string_with_env(env, xs...)
     if isempty(xs)
         return ""
     end
-    siz = 0
+    siz::Int = 0
     for x in xs
         siz += tostr_sizehint(x)
     end

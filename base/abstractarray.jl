@@ -700,7 +700,7 @@ function copyto!(dest::AbstractArray, dstart::Integer, src, sstart::Integer)
     end
     if y === nothing
         throw(ArgumentError(string("source has fewer elements than required, ",
-                                      "expected at least ",sstart,", got ",sstart-1)))
+                                   "expected at least ",sstart,", got ",sstart-1)))
     end
     i = Int(dstart)
     while y != nothing
@@ -1370,13 +1370,13 @@ _cs(d, a, b) = (a == b ? a : throw(DimensionMismatch(
     "mismatch in dimension $d (expected $a got $b)")))
 
 function dims2cat(::Val{n}) where {n}
-    n <= 0 && throw(ArgumentError("cat dimension must be a positive integer, but got $n"))
+    n <= 0 && throw(DomainError(n, "cat dimension must be a positive integer"))
     ntuple(i -> (i == n), Val(n))
 end
 
 function dims2cat(dims)
     if any(dims .<= 0)
-        throw(ArgumentError("All cat dimensions must be positive integers, but got $dims"))
+        throw(DomainError(dims, "All cat dimensions must be positive integers"))
     end
     ntuple(in(dims), maximum(dims))
 end
