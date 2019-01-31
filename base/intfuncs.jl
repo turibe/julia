@@ -409,12 +409,12 @@ const powers_of_ten = [
     0x000000e8d4a51000, 0x000009184e72a000, 0x00005af3107a4000, 0x00038d7ea4c68000,
     0x002386f26fc10000, 0x016345785d8a0000, 0x0de0b6b3a7640000, 0x8ac7230489e80000,
 ]
-function ndigits0z(x::Base.BitUnsigned64)
+function bit_ndigits0z(x::Base.BitUnsigned64)
     lz = (sizeof(x)<<3)-leading_zeros(x)
     nd = (1233*lz)>>12+1
     nd -= x < powers_of_ten[nd]
 end
-function ndigits0z(x::UInt128)
+function bit_ndigits0z(x::UInt128)
     n = 0
     while x > 0x8ac7230489e80000
         x = div(x,0x8ac7230489e80000)
@@ -423,16 +423,20 @@ function ndigits0z(x::UInt128)
     return n + ndigits0z(UInt64(x))
 end
 
-ndigits0z(x::BitSigned) = ndigits0z(unsigned(abs(x)))
-
+ndigits0z(x::BitSigned) = bit_ndigits0z(unsigned(abs(x)))
+ndigits0z(x::BitUnsigned) = bit_ndigits0z(x)
 ndigits0z(x::Integer) = ndigits0zpb(x, 10)
 
 ## ndigits with specified base ##
 
 # The suffix "nb" stands for "negative base"
 function ndigits0znb(x::Integer, b::Integer)
-    # precondition: b < -1 && !(typeof(x) <: Unsigned)
     d = 0
+    if x isa Unsigned
+        d += (x != 0)::Bool
+        x = -signed(fld(x, -b))
+    end
+    # precondition: b < -1 && !(typeof(x) <: Unsigned)
     while x != 0
         x = cld(x,b)
         d += 1
@@ -441,7 +445,6 @@ function ndigits0znb(x::Integer, b::Integer)
 end
 
 # do first division before conversion with signed here, which can otherwise overflow
-ndigits0znb(x::Unsigned, b::Integer) = ndigits0znb(-signed(fld(x, -b)), b) + (x != 0)
 ndigits0znb(x::Bool, b::Integer) = x % Int
 
 # The suffix "pb" stands for "positive base"
@@ -451,11 +454,11 @@ function ndigits0zpb(x::Integer, b::Integer)
     b = Int(b)
     x = abs(x)
     if x isa Base.BitInteger
-        x = unsigned(x)
+        x = unsigned(x)::Unsigned
         b == 2  && return sizeof(x)<<3 - leading_zeros(x)
         b == 8  && return (sizeof(x)<<3 - leading_zeros(x) + 2) ÷ 3
         b == 16 && return sizeof(x)<<1 - leading_zeros(x)>>2
-        b == 10 && return ndigits0z(x)
+        b == 10 && return bit_ndigits0z(x)
     end
 
     d = 0
