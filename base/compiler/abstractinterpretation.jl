@@ -492,8 +492,9 @@ end
 # do apply(af, fargs...), where af is a function value
 function abstract_apply(@nospecialize(aft), aargtypes::Vector{Any}, vtypes::VarTable, sv::InferenceState,
                         max_methods = sv.params.MAX_METHODS)
-    if !isa(aft, Const) && (!isType(aft) || has_free_typevars(aft))
-        if !isconcretetype(aft) || (aft <: Builtin)
+    aftw = widenconst(aft)
+    if !isa(aft, Const) && (!isType(aftw) || has_free_typevars(aftw))
+        if !isconcretetype(aftw) || (aftw <: Builtin)
             # non-constant function of unknown type: bail now,
             # since it seems unlikely that abstract_call will be able to do any better after splitting
             # this also ensures we don't call abstract_call_gf_by_type below on an IntrinsicFunction or Builtin

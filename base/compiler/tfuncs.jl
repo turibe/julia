@@ -470,12 +470,14 @@ function isa_tfunc(@nospecialize(v), @nospecialize(tt))
             if isexact && isnotbrokensubtype(v, t)
                 return Const(true)
             end
-        elseif isa(v, Const) || isa(v, Conditional) || isdispatchelem(v)
-            # this tests for knowledge of a leaftype appearing on the LHS
-            # (ensuring the isa is precise)
-            return Const(false)
         else
+            if isa(v, Const) || isa(v, Conditional)
+                # this and the `isdispatchelem` below test for knowledge of a
+                # leaftype appearing on the LHS (ensuring the isa is precise)
+                return Const(false)
+            end
             v = widenconst(v)
+            isdispatchelem(v) && return Const(false)
             if typeintersect(v, t) === Bottom
                 # similar to `isnotbrokensubtype` check above, `typeintersect(v, t)`
                 # can't be trusted for kind types so we do an extra check here
