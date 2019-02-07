@@ -746,8 +746,14 @@ function sendfile(src::AbstractString, dst::AbstractString)
         dst_file = open(dst, JL_O_CREAT | JL_O_TRUNC | JL_O_WRONLY, filemode(src_file))
         dst_open = true
 
-        bytes = filesize(stat(src_file))
-        sendfile(dst_file, src_file, Int64(0), Int(bytes))
+        bytes = Int(filesize(stat(src_file)))
+        offs = Int64(0)
+        while true
+            nsent = sendfile(dst_file, src_file, offs, bytes)
+            bytes -= nsent
+            offs += nsent
+            bytes <= 0 && break
+        end
     finally
         if src_open && isopen(src_file)
             close(src_file)

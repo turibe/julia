@@ -106,10 +106,10 @@ end
 function sendfile(dst::File, src::File, src_offset::Int64, bytes::Int)
     check_open(dst)
     check_open(src)
-    err = ccall(:jl_fs_sendfile, Int32, (OS_HANDLE, OS_HANDLE, Int64, Csize_t),
-                src.handle, dst.handle, src_offset, bytes)
-    uv_error("sendfile", err)
-    nothing
+    result = ccall(:jl_fs_sendfile, Int32, (OS_HANDLE, OS_HANDLE, Int64, Csize_t),
+                   src.handle, dst.handle, src_offset, bytes)
+    uv_error("sendfile", result)
+    return Int(result)  # bytes written
 end
 
 function unsafe_write(f::File, buf::Ptr{UInt8}, len::UInt, offset::Int64=Int64(-1))
